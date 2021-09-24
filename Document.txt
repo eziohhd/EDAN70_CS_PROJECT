@@ -21,7 +21,7 @@ Author: Haidi Hu, Xingda Li, Sijia Cheng, Xi Chen
    ## Use long wires to replace original wires
 
 
-   ## Arduino Serial Output to CSV/Excel(https://circuitjournal.com/arduino-serial-to-spreadsheet)
+   ## Arduino Serial Output to CSV/Excel(Coolterm)
 
    ## Further plan:
 
