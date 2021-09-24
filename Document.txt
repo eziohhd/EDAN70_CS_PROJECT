@@ -15,7 +15,7 @@ Author: Haidi Hu, Xingda Li, Sijia Cheng, Xi Chen
 ### Daily report 0924
 
   
-   ## Create the corresponding github project and update files and libraries
+   ## Create the corresponding github project and update files and libraries(pulsedlight3d and rambo I2C)
 
 
    ## Use long wires to replace original wires
