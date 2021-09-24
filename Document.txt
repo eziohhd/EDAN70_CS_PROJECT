@@ -1,2 +1,28 @@
 Author: Haidi Hu, Xingda Li, Sijia Cheng, Xi Chen
 
+
+### Daily report 0921
+
+  
+   ## Finished the code for scanning the room. Got motor angles and distance in serial monitor.
+
+   ## Further plan:
+
+     # Export data and generate a 3D plot.
+
+
+
+### Daily report 0924
+
+  
+   ## Create the corresponding github project and update files and libraries
+
+
+   ## Use long wires to replace original wires
+
+
+   ## Further plan:
+
+     # Export data and generate a 3D plot
+
+     # Use raspberry pi + camera to realize the detection of moving objects
