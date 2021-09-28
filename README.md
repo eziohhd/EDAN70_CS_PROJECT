@@ -7,7 +7,7 @@ Author: Haidi Hu, Xingda Li, Sijia Cheng, Xi Chen
   
     - Finished the code for scanning the room. Got motor angles and distance in serial monitor.
 
-    ###Further plan:
+   ### Further plan:
 
     - Export data and generate a 3D plot.
 
@@ -22,7 +22,7 @@ Author: Haidi Hu, Xingda Li, Sijia Cheng, Xi Chen
     - Use long wires to replace original wires
 
 
-    Arduino Serial Output to CSV/Excel(Coolterm)
+    - Arduino Serial Output to CSV/Excel(Coolterm)
 
    ### Further plan:
 
