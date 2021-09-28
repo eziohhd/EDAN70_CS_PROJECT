@@ -29,3 +29,12 @@ Author: Haidi Hu, Xingda Li, Sijia Cheng, Xi Chen
   - Export data and generate a 3D plot
 
   - Use raspberry pi + camera to realize the detection of moving objects
+  
+
+## Daily report 0928
+
+  - Got the first version of our 3D plot.
+
+  ### Further plan:
+
+  - Make the plot nicer by some sort of calibration or error correction.
