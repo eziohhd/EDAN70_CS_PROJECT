@@ -38,3 +38,15 @@ Author: Haidi Hu, Xingda Li, Sijia Cheng, Xi Chen
   ### Further plan:
 
   - Make the plot nicer by some sort of calibration or error correction.
+
+
+## Daily report 0929
+
+  - Able to detect black object and mark with white square for the image taken by pi camera using Matlab.
+
+  ### Further plan:
+
+  - Run detection on live data(images) and get the position of the object in real time.
+
+
+
