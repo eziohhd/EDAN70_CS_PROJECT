@@ -54,7 +54,7 @@ Author: Haidi Hu, Xingda Li, Sijia Cheng, Xi Chen
   
   ### Further plan
   
-  - Exchange data between the raspberry pi-system and the motor-lidar system to control the laser.
+  - Exchange data between the raspberry pi-camera system and the motor-lidar system to control the laser.
   
   
 
