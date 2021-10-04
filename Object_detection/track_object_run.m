@@ -3,10 +3,10 @@ clc;
 %Create a raspi object and a camera board object
 rpi = raspi();
 cam = cameraboard(rpi, 'Resolution', '640x480');
-
+%record(cam,'myvideo.mp4',60)
 figure(1);
 for i = 1:1000000
-%     [img,bwbw,xm,ym] = track_object(snapshot(cam), 50); 
+%     [img,bwbw,xm,ym] = track_object(snapshot(cam), 50);
  img = snapshot(cam);
 
     grayImage=rgb2gray(img);
@@ -29,7 +29,7 @@ binaryImage=grayImage<50;
 %Bound the object in a red rectangular box
  if ~isempty(x) && ~isempty(y)
     xm = round(mean(x));
-    ym = round(mean(y));   
+    ym = round(mean(y));
     xx = max(1, min(x-2)):min(max(x+2), size(binaryImage, 1));
     yy = max(1, min(y-2)):min(max(y+2), size(binaryImage, 2));
 %     xx = max(1, xm-5):min(xm+5, size(binaryImage, 1));
