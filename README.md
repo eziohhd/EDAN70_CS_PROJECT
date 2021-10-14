@@ -47,6 +47,7 @@ Author: Haidi Hu, Xingda Li, Sijia Cheng, Xi Chen
   ### Further plan:
 
   - Run detection on live data(images) and get the position of the object in real time.
+
   
 ## Daily report 1004
 
@@ -56,7 +57,42 @@ Author: Haidi Hu, Xingda Li, Sijia Cheng, Xi Chen
   
   - Exchange data between the raspberry pi-camera system and the motor-lidar system to control the laser.
   
+
+## Daily report 1006
+
+  - Able to detect and output the position of the black object in real time.
   
+  ### Further plan
+  
+  - To think about the algorithm for deciding the motor movements by the position of the dung beetle.
+
+
+## Daily report 1012
+
+  - Got the dimension of space using pcfitcuboid function in Matlab.
+  
+ 
+## Daily report 1013
+
+  - The reason why previous point cloud differs from an ideal cuboid is the Lidar measurement is floating when the distance is small. So I scanned my room again and got a clean plot, also the dimensions.
+  
+  ### Further plan
+  
+  - Link the coordinates of the laser point with the motor angle.
+  
+ 
+  
+
+
+
+
+
+
+
+
+
+  
+
 
 
 
