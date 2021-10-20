@@ -17,6 +17,7 @@
  */
 #include <ax12.h>
 #include <Commander.h>
+#include <stdint.h>
 
 #define PAN_MIN  0      //Minimum Servo Position
 #define PAN_MAX  4095   //Maximum Servo Position
@@ -57,6 +58,8 @@ String inputString = "";         // a string to hold incoming data
 boolean stringComplete = false;  // whether the string is complete
 boolean inputValid = false;
 
+char MoveDone = "t";// To show that one movement of the motors is done or not
+
 void setup()
 {
   Serial.begin(9600); //start serial port communication
@@ -91,15 +94,18 @@ void loop() {
    }
    else {
     inputString.toCharArray(buf,10);
-    p1=(buf[0]-48)*1000+(buf[1]-48)*100+(buf[2]-48)*10+(buf[3]-48);
-    p2=(buf[4]-48)*1000+(buf[5]-48)*100+(buf[6]-48)*10+(buf[7]-48);
+//    p1=(buf[0]-48)*1000+(buf[1]-48)*100+(buf[2]-48)*10+(buf[3]-48);
+//    p2=(buf[4]-48)*1000+(buf[5]-48)*100+(buf[6]-48)*10+(buf[7]-48);
+   StringToData(buf,p1,p2);
    if(p2>=TILT_MIN && p2<=TILT_MAX) {
     SetPosition(1,p1);
-    SetPosition(2,p2);}    
+    SetPosition(2,p2); 
+}    
     Serial.print("Pan angle is ");
     Serial.print(p1, DEC);
     Serial.print(",tilt angle is ");
     Serial.println(p2, DEC);
+    Serial.println(t);
    }
     //Serial.println(inputString); 
     // clear the string:
@@ -133,5 +139,16 @@ void serialEvent() {
     } 
   }
 }
+
+/*
+ This function translates the string from the raspberry pi to the 
+ motor position
+ */
+ void StringToData(const char *string, int &p1 ,int &p2)
+ {
+    p1=(string[0]-48)*1000+(string[1]-48)*100+(string[2]-48)*10+(string[3]-48);
+    p2=(string[4]-48)*1000+(string[5]-48)*100+(string[6]-48)*10+(string[7]-48); 
+ }
+
 
 
