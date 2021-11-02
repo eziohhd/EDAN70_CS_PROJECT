@@ -17,7 +17,6 @@
  */
 #include <ax12.h>
 #include <Commander.h>
-#include <stdint.h>
 
 #define PAN_MIN  0      //Minimum Servo Position
 #define PAN_MAX  4095   //Maximum Servo Position
@@ -57,12 +56,11 @@ int p2=TILT_MAX;
 String inputString = "";         // a string to hold incoming data
 boolean stringComplete = false;  // whether the string is complete
 boolean inputValid = false;
-
-char MoveDone = "t";// To show that one movement of the motors is done or not
+boolean ServoMoving = false;
 
 void setup()
 {
-  Serial.begin(9600); //start serial port communication
+  Serial.begin(115200); //start serial port communication
   // reserve 200 bytes for the inputString:
   inputString.reserve(200);
   delay(500);           //delay to let DYNAMIXEL services start  
@@ -83,34 +81,49 @@ void setup()
   //program is ready, turn on the LED
   pinMode(0, OUTPUT);   //set pin mode 
   digitalWrite(0,HIGH); //turn LED on
+  Serial.println("Ready");
 }
 
 void loop() {
+  servoMonitor();
   // print the string when a newline arrives:
   if (stringComplete) {
     int strlength = inputString.length();
-   if (strlength != 9) {
-    Serial.println("Input invalid");
+    //Serial.println(strlength);
+   if (strlength != 8) {
+    Serial.print(" Input invalid: ");
+    Serial.println(inputString);
    }
    else {
     inputString.toCharArray(buf,10);
-//    p1=(buf[0]-48)*1000+(buf[1]-48)*100+(buf[2]-48)*10+(buf[3]-48);
-//    p2=(buf[4]-48)*1000+(buf[5]-48)*100+(buf[6]-48)*10+(buf[7]-48);
-   StringToData(buf,p1,p2);
+    p1=(buf[0]-48)*1000+(buf[1]-48)*100+(buf[2]-48)*10+(buf[3]-48);
+    p2=(buf[4]-48)*1000+(buf[5]-48)*100+(buf[6]-48)*10+(buf[7]-48);
    if(p2>=TILT_MIN && p2<=TILT_MAX) {
     SetPosition(1,p1);
     SetPosition(2,p2); 
-}    
+    ServoMoving = true;
     Serial.print("Pan angle is ");
     Serial.print(p1, DEC);
     Serial.print(",tilt angle is ");
     Serial.println(p2, DEC);
-    Serial.println(t);
+   }
    }
     //Serial.println(inputString); 
     // clear the string:
     inputString = "";
     stringComplete = false;
+  }
+}
+
+void servoMonitor() {
+  if (ServoMoving) {
+    servoMoving1 =   ax12GetRegister(1, AX_MOVING, 1);
+    servoMoving2 =   ax12GetRegister(2, AX_MOVING, 1);
+    if (servoMoving1 == 0 and servoMoving2 == 0) {
+      delay(500); 
+      Serial.println("In position");
+      ServoMoving = false;
+    }
   }
 }
 
@@ -128,7 +141,7 @@ void serialEvent() {
       inputValid= true;
     }
     // add it to the inputString:
-    if(inputValid and inChar!='s') {
+    if((inputValid and inChar!='s') and inChar!='\n' and stringComplete == false) {
      inputString += inChar;
     }
     // if the incoming character is a newline, set a flag
@@ -139,16 +152,5 @@ void serialEvent() {
     } 
   }
 }
-
-/*
- This function translates the string from the raspberry pi to the 
- motor position
- */
- void StringToData(const char *string, int &p1 ,int &p2)
- {
-    p1=(string[0]-48)*1000+(string[1]-48)*100+(string[2]-48)*10+(string[3]-48);
-    p2=(string[4]-48)*1000+(string[5]-48)*100+(string[6]-48)*10+(string[7]-48); 
- }
-
 
 
