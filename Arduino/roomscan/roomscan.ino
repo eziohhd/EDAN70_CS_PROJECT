@@ -51,7 +51,7 @@ Commander command = Commander();  //create commander object to accept serial com
 
 void setup()
 {
-  Serial.begin(115200); //start serial port communication
+  Serial.begin(9600); //start serial port communication 115200
   delay(500);           //delay to let DYNAMIXEL services start  
   
   ax12SetRegister2(1,AX_GOAL_SPEED_L,DEFAULT_SPEED1);    //set the speed on the pan servo
@@ -76,7 +76,7 @@ void setup()
 
 void loop()
 {
-  if(tiltCurrentPosition = TILT_MAX)
+  if(tiltCurrentPosition == TILT_MAX)
   {
     scanActive = false;
   }
@@ -85,7 +85,7 @@ void loop()
     scanActive = true;
   }
   
-  if(scanActive = true)
+  if(scanActive == true)
   {
     //move the pan server
     if(millis() - previousMillisMoving > intervalMoving) 
