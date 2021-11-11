@@ -85,11 +85,9 @@ void setup()
 }
 
 void loop() {
-  servoMonitor();
-  // print the string when a newline arrives:
+   servoMonitor();
   if (stringComplete) {
-    int strlength = inputString.length();
-    //Serial.println(strlength);
+   int strlength = inputString.length();
    if (strlength != 8) {
     Serial.print(" Input invalid: ");
     Serial.println(inputString);
@@ -115,13 +113,18 @@ void loop() {
   }
 }
 
-void servoMonitor() {
+/*
+  monitor the movement of the servos,
+  when they stop moving, print "In positon"
+*/
+void servoMonitor() { 
   if (ServoMoving) {
     servoMoving1 =   ax12GetRegister(1, AX_MOVING, 1);
     servoMoving2 =   ax12GetRegister(2, AX_MOVING, 1);
     if (servoMoving1 == 0 and servoMoving2 == 0) {
-      delay(500); 
+      delay(5000);
       Serial.println("In position");
+      delay(500);
       ServoMoving = false;
     }
   }
@@ -136,6 +139,7 @@ void servoMonitor() {
 void serialEvent() {
   while (Serial.available()) {
     // get the new byte:
+    if (not ServoMoving) {
     char inChar = (char)Serial.read(); 
     if (inChar == 's'){
       inputValid= true;
@@ -151,6 +155,7 @@ void serialEvent() {
       inputValid = false;
     } 
   }
+}
 }
 
 
