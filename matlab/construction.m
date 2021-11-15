@@ -38,16 +38,14 @@ r1=sqrt(m1*m1+n1*n1);
 b1=acos(n1/r1);
 panAngle = mapfun(a1,0,2*pi,0,4096);
 if panAngle>2048 
-    panAngle=panAngle-2048
+    panAngle=panAngle-2048;
 else
-    panAngle=panAngle+2048
+    panAngle=panAngle+2048;
 end
 
 panAngleH=floor(panAngle/256);
 panAngleL=round(panAngle-panAngleH*256);
 tiltAngle = mapfun(b1,0,pi,1024,3072);
 tiltAngle=4096-tiltAngle;
-tiltAngleH
-
-=floor(tiltAngle/256);
+tiltAngleH =floor(tiltAngle/256);
 tiltAngleL=round(tiltAngle-tiltAngleH*256);
