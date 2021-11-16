@@ -1,4 +1,4 @@
-raw = readtable('data_test.csv','ReadVariableNames',false);
+raw = readtable('dataaaaa.csv','ReadVariableNames',false);
 rawM = raw{1:size(raw),:};
 nrPoint = length(rawM)/5;
 for i =1: nrPoint
@@ -25,10 +25,8 @@ end
 for i= 1 : length(F)
 %    [F(i,1),F(i,2)]=pol2cart(T(i,1),T(i,3)*sin(T(i,2))+7.5*sin(pi-T(i,2))+5*cos(pi-T(i,2)));
 %    F(i,3)=16+7.5*cos(pi-T(i,2))-5*sin(pi-T(i,2))-cos(T(i,2))*T(i,3);
-   if((F(i,1)> 1000)||(F(i,2)> 1000))
-       wrong_point_index = i;
-   end
- 
+   if((i,1))
+
        
 end
 ptCloud = pointCloud(F);

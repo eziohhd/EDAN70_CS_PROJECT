@@ -70,10 +70,10 @@ void setup()
   ax12SetRegister2(2,AX_GOAL_SPEED_L,DEFAULT_SPEED2);    //set the speed on the tilt servo
   delay(33);                                             //delay before next DYNAMIXEL command
   
-  SetPosition(1,PAN_MAX);     //set the position of servo # 1 to its starting/min position
+  SetPosition(1,500);     //set the position of servo # 1 to its starting/min position   PAN_MAX
   delay(33);                   //delay before next DYNAMIXEL command
-  
-  SetPosition(2,TILT_MAX); //set the position of servo # 2 to  its defualt position. If the servo is not present, nothing will happen
+    
+  SetPosition(2,2500); //set the position of servo # 2 to  its defualt position. If the servo is not present, nothing will happen  TILT_MAX
   delay(33);                    //delay before next DYNAMIXEL command
 
 

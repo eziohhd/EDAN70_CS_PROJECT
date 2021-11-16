@@ -10,9 +10,11 @@ import time
 import cv2
 import numpy as np
 import RPi.GPIO as GPIO
+import pandas as pd
 from numpy.linalg import svd
 from numpy.linalg import matrix_rank as rank
 from scipy.linalg import diagsvd
+from functions import *
 
 # Function to swich between rectangular and polar coordinates need!!
 
@@ -72,13 +74,34 @@ def cart2sph(x, y, z):
    return pan, tilt
 
 if __name__ == '__main__':
-    ser = serial.Serial('/dev/ttyUSB0',115200,timeout=1)
-    ser.flush()
+    
+    
     cap = cv2.VideoCapture(0)
+    
     # initialize
     # change file path
-    file = np.genfromtxt('myfile.csv', delimiter=',')
-    test = np.genfromtxt('test.csv', delimiter=',')
+      
+    
+    # Get the data from Lidar and process them to get the polar points and xyz points
+    df = pd.read_csv(r'data_test.csv',header=None)   #read the csv file (put 'r' before the path string to address any special characters in the path, such as '\'). Don't forget to put the file name at the end of the path + ".csv"
+    rawM = df.to_numpy()
+    T = np.zeros((int(rawM.size/5),3))
+    points_size = int(T.size/3)
+    points = np.zeros((points_size,3))
+    for i in range(points_size):
+        
+        T[i,0] =  mapfun(rawM[5*i,0]*256+rawM[5*i+1,0],0,4096,0,2*math.pi)
+        T[i,1] =  mapfun(rawM[5*i+2,0]*256+rawM[5*i+3,0],1024,3072,0,math.pi)
+        T[i,2] =  rawM[5*i+4,0]
+    
+    for i in range(points_size):
+        
+        points[i,0] = T[i,2]*math.sin(T[i,1])*math.cos(T[i,0])
+        points[i,1] = T[i,2]*math.sin(T[i,1])*math.sin(T[i,0])
+        points[i,2]=16-math.cos(T[i,1])*T[i,2]
+    
+    file_index,file = GetPointsForCalibration(T,points) #points for calibration
+    test_index,test = GetPointsForVerification(T,points)#points for verification 
     
     diff = []
     A = []
@@ -97,7 +120,8 @@ if __name__ == '__main__':
     #Hsv values for green color 
     lower_green = np.array([40,40,40])
     upper_green = np.array([70,255,255])
-    
+    ser = serial.Serial('/dev/ttyUSB0',115200,timeout=1)
+    ser.flush()
     #mode 1: hardware setup
     while mode == 0 :
         if ser.in_waiting > 0: 
@@ -139,62 +163,73 @@ if __name__ == '__main__':
                     # compute the center of the contour
                     u = round((X + W) / 2)
                     v = round((Y + H) / 2)
+                    print(u,v)
                     # (x, y, z) in 3D model
                     # (u, v) in frame
                     # Modify x,y,z
+                    x = points[int(file_index[cnt]),0]
+                    y = points[int(file_index[cnt]),1]
+                    z = points[int(file_index[cnt]),2]
+                    print(x,y,z)
                     A = Matrix(x,y,z,u,v,A)
                     cnt = cnt + 1
                     ServoReady = 1
-#               else :
-#                   raise ValueError("No object detected!")
+                else :
+                  raise ValueError("No object detected!")
         # Stop sending command to servos
         # when ServoReady = 0                 
         if ServoReady == 1:
             if cnt == 0 :
                 # Add x, y, z
-                x = file[cnt * 3]
-                y = file[cnt * 3 + 1]
-                z = file[cnt * 3 + 2]
-                pan, tilt = cart2sph(x, y, z)
+#                 x = file[cnt * 3]
+#                 y = file[cnt * 3 + 1]
+#                 z = file[cnt * 3 + 2]
+#                 pan, tilt = cart2sph(x, y, z)
+                pan,tilt = GetPanTilt(file_index[cnt],rawM)  
                 MotorControl(pan,tilt)      
                 ServoReady = 0
             elif cnt == 1 :
-                x = file[cnt * 3]
-                y = file[cnt * 3 + 1]
-                z = file[cnt * 3 + 2]
-                pan, tilt = cart2sph(x, y, z)
+#                 x = file[cnt * 3]
+#                 y = file[cnt * 3 + 1]
+#                 z = file[cnt * 3 + 2]
+                #pan, tilt = cart2sph(x, y, z)
+                pan,tilt = GetPanTilt(file_index[cnt],rawM) 
                 MotorControl(pan,tilt) 
                 ServoReady = 0
             elif cnt == 2 :
                 # Add x, y, z
-                x = file[cnt * 3]
-                y = file[cnt * 3 + 1]
-                z = file[cnt * 3 + 2]
-                pan, tilt = cart2sph(x, y, z)
+#                 x = file[cnt * 3]
+#                 y = file[cnt * 3 + 1]
+#                 z = file[cnt * 3 + 2]
+                #pan, tilt = cart2sph(x, y, z)
+                pan,tilt = GetPanTilt(file_index[cnt],rawM) 
                 MotorControl(pan,tilt) 
                 ServoReady = 0
             elif cnt == 3 :
                 # Add x, y, z
-                x = file[cnt * 3]
-                y = file[cnt * 3 + 1]
-                z = file[cnt * 3 + 2]
-                pan, tilt = cart2sph(x, y, z)
+#                 x = file[cnt * 3]
+#                 y = file[cnt * 3 + 1]
+#                 z = file[cnt * 3 + 2]
+#                 pan, tilt = cart2sph(x, y, z)
+                pan,tilt = GetPanTilt(file_index[cnt],rawM) 
                 MotorControl(pan,tilt) 
                 ServoReady = 0
             elif cnt == 4 :
                 # Add x, y, z
-                x = file[cnt * 3]
-                y = file[cnt * 3 + 1]
-                z = file[cnt * 3 + 2]                
-                pan, tilt = cart2sph(x, y, z)
+#                 x = file[cnt * 3]
+#                 y = file[cnt * 3 + 1]
+#                 z = file[cnt * 3 + 2]                
+#                 pan, tilt = cart2sph(x, y, z)
+                pan,tilt = GetPanTilt(file_index[cnt],rawM) 
                 MotorControl(pan,tilt) 
                 ServoReady = 0
             elif cnt == 5 :
                 # Add x, y, z 
-                x = file[cnt * 3]
-                y = file[cnt * 3 + 1]
-                z = file[cnt * 3 + 2]
-                pan, tilt = cart2sph(x, y, z)
+#                 x = file[cnt * 3]
+#                 y = file[cnt * 3 + 1]
+#                 z = file[cnt * 3 + 2]
+#                 pan, tilt = cart2sph(x, y, z)
+                pan,tilt = GetPanTilt(file_index[cnt],rawM) 
                 MotorControl(pan,tilt) 
                 ServoReady = 0    
             elif cnt == 6 :
@@ -205,8 +240,11 @@ if __name__ == '__main__':
                 #by solving a Homogeneous Linear
                 #Equation System
                 M = sol_svd(A)
-                servoReady = 0 
+                print(M)
+                servoReady = 1
+                cnt = 0               
                 mode = 2
+                
       
     #mode 3: Test
     while mode == 2 :
@@ -239,8 +277,15 @@ if __name__ == '__main__':
                     u = round((X + W) / 2)
                     v = round((Y + H) / 2)
                     p3 = get_corr_point(M, u, v)
+                    
                     p3 = np.real(p3)
+                    print(u,v)
+                    print(p3)
                     # Add x, y, z
+                    x = points[int(test_index[cnt]),0]
+                    y = points[int(test_index[cnt]),1]
+                    z = points[int(test_index[cnt]),2]
+                    print(x,y,z)
                     p3_real = np.array([[x], [y], [z]])
                     diff.append(p3-p3_real)                    
                     # (x, y, z) in 3D model
@@ -249,62 +294,67 @@ if __name__ == '__main__':
                    # A = Matrix(x,y,z,u,v,A)
                     cnt = cnt + 1
                     ServoReady = 1
-#               else :
-#                   raise ValueError("No object detected!")
+                else :
+                  raise ValueError("No object detected!")
         # Stop sending command to servos
         # when ServoReady = 0                 
         if ServoReady == 1:
             if cnt == 0 :
                 # Add x, y, z
-                x = test[cnt * 3]
-                y = test[cnt * 3 + 1]
-                z = test[cnt * 3 + 2]
-                pan, tilt = cart2sph(x, y, z)  
-                MotorControl(pan,tilt)
+#                 x = file[cnt * 3]
+#                 y = file[cnt * 3 + 1]
+#                 z = file[cnt * 3 + 2]
+#                 pan, tilt = cart2sph(x, y, z)
+                pan,tilt = GetPanTilt(test_index[cnt],rawM)  
+                MotorControl(pan,tilt)      
                 ServoReady = 0
             elif cnt == 1 :
-                # Add x, y, z
-                x = test[cnt * 3]
-                y = test[cnt * 3 + 1]
-                z = test[cnt * 3 + 2]
-                pan, tilt = cart2sph(x, y, z)  
-                MotorControl(pan,tilt)
+#                 x = file[cnt * 3]
+#                 y = file[cnt * 3 + 1]
+#                 z = file[cnt * 3 + 2]
+                #pan, tilt = cart2sph(x, y, z)
+                pan,tilt = GetPanTilt(test_index[cnt],rawM) 
+                MotorControl(pan,tilt) 
                 ServoReady = 0
             elif cnt == 2 :
                 # Add x, y, z
-                x = test[cnt * 3]
-                y = test[cnt * 3 + 1]
-                z = test[cnt * 3 + 2]
-                pan, tilt = cart2sph(x, y, z)  
-                MotorControl(pan,tilt)   
+#                 x = file[cnt * 3]
+#                 y = file[cnt * 3 + 1]
+#                 z = file[cnt * 3 + 2]
+                #pan, tilt = cart2sph(x, y, z)
+                pan,tilt = GetPanTilt(test_index[cnt],rawM) 
+                MotorControl(pan,tilt) 
                 ServoReady = 0
             elif cnt == 3 :
                 # Add x, y, z
-                x = test[cnt * 3]
-                y = test[cnt * 3 + 1]
-                z = test[cnt * 3 + 2]
-                pan, tilt = cart2sph(x, y, z)  
-                MotorControl(pan,tilt)   
+#                 x = file[cnt * 3]
+#                 y = file[cnt * 3 + 1]
+#                 z = file[cnt * 3 + 2]
+#                 pan, tilt = cart2sph(x, y, z)
+                pan,tilt = GetPanTilt(test_index[cnt],rawM) 
+                MotorControl(pan,tilt) 
                 ServoReady = 0
             elif cnt == 4 :
                 # Add x, y, z
-                x = test[cnt * 3]
-                y = test[cnt * 3 + 1]
-                z = test[cnt * 3 + 2]
-                pan, tilt = cart2sph(x, y, z)   
-                MotorControl(pan,tilt)  
+#                 x = file[cnt * 3]
+#                 y = file[cnt * 3 + 1]
+#                 z = file[cnt * 3 + 2]                
+#                 pan, tilt = cart2sph(x, y, z)
+                pan,tilt = GetPanTilt(test_index[cnt],rawM) 
+                MotorControl(pan,tilt) 
                 ServoReady = 0
             elif cnt == 5 :
                 # Add x, y, z 
-                x = test[cnt * 3]
-                y = test[cnt * 3 + 1]
-                z = test[cnt * 3 + 2]
-                pan, tilt = cart2sph(x, y, z)   
-                MotorControl(pan,tilt)  
-                ServoReady = 0    
+#                 x = file[cnt * 3]
+#                 y = file[cnt * 3 + 1]
+#                 z = file[cnt * 3 + 2]
+#                 pan, tilt = cart2sph(x, y, z)
+                pan,tilt = GetPanTilt(test_index[cnt],rawM) 
+                MotorControl(pan,tilt) 
+                ServoReady = 0     
             elif cnt == 6 :
             #     MotorControl(pan,tilt)
-            #     ServoReady = 0
+                ServoReady = 0
             # elif cnt == 7 :
                 print(diff)        
         
