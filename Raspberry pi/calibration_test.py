@@ -16,9 +16,7 @@ from numpy.linalg import matrix_rank as rank
 from scipy.linalg import diagsvd
 from functions import *
 
-# Function to swich between rectangular and polar coordinates need!!
-
-
+# set servos position
 def MotorControl(location1,location2):        
     string_temp = 's'+str(location1)+str(location2)+'\n'
     string = bytes(string_temp,'utf-8')
@@ -34,44 +32,25 @@ def sol_svd(A):
     # extract the eigenvector (column) associated with the minimum eigenvalue
     return e_vecs[:, np.argmin(e_vals)]
 
-# Solve a SVD System: Ax=b
-def sol_svd2(A,b):
-    A = np.array(A)
-    u,s,vt = svd(A)
-    r = rank(A)
-    s[:r] = 1/s[:r]
-    m,n = A.shape
-    s_inv = diagsvd(s,m,n).T
-    x = vt.T.dot(s_inv).dot(u.T).dot(b)
-    return x
-
 # Matrix A
 def Matrix(x,y,z,u,v,A):
-    coe1 = [x, y, z, 1, 0, 0, 0, 0, -u*x, -u*y, -u*z, -u]
-    coe2 = [0, 0, 0, 0, x, y, z, 1, -v*x, -v*y, -v*z, -v]
+    coe1 = [u, v, 1, 0, 0, 0, 0, 0, 0, -u*x, -v*x, -x]
+    coe2 = [0, 0, 0, u, v, 1, 0, 0, 0, -u*y, -v*y, -y]
+    coe3 = [0, 0, 0, 0, 0, 0, u, v, 1, -u*z, -v*z, -z]
     A.append(coe1)
     A.append(coe2)
+    A.append(coe3)
     return A
 
 # get corresponding cordinate after getting M
 def get_corr_point(M,u,v):
-    M = M.reshape((3,4))
-    p2 = np.array([[u],[v],[1]])
-    p3 = sol_svd2(M, p2)
-    p3 = p3/p3[-1]
-    return p3[0:3]
+    M = M.reshape((4,3))
+    x = (M[0][0]*u + M[0][1]*v + M[0][2])/(M[3][0]*u + M[3][1]*v + M[3][2])
+    y = (M[1][0]*u + M[1][1]*v + M[1][2])/(M[3][0]*u + M[3][1]*v + M[3][2])
+    z = (M[2][0]*u + M[2][1]*v + M[2][2])/(M[3][0]*u + M[3][1]*v + M[3][2])
+    p3 = np.array([[x],[y],[z]])
+    return p3
 
-def cart2sph(x, y, z):
-   xy = np.sqrt(x**2 + y**2) # sqrt(x² + y²)    
-   # x_2 = x**2
-   # y_2 = y**2
-   # z_2 = z**2
-   # r = np.sqrt(x_2 + y_2 + z_2) # r = sqrt(x² + y² + z²)
-   theta = np.arctan2(y, x) 
-   phi = np.arctan2(xy, z) 
-   pan = theta / 360 * 4096
-   tilt = phi / 90 * 1024 + 2048
-   return pan, tilt
 
 if __name__ == '__main__':
     
@@ -105,6 +84,9 @@ if __name__ == '__main__':
     
     diff = []
     A = []
+    points_cloud = []
+    # define the number of points we would like to take in calibration
+    number_of_samples = 10 
     x = 0
     y = 0
     z = 0
@@ -122,7 +104,7 @@ if __name__ == '__main__':
     upper_green = np.array([70,255,255])
     ser = serial.Serial('/dev/ttyUSB0',115200,timeout=1)
     ser.flush()
-    #mode 1: hardware setup
+    #mode 0: hardware setup
     while mode == 0 :
         if ser.in_waiting > 0: 
             line = ser.readline().decode('utf-8').rstrip()
@@ -130,9 +112,22 @@ if __name__ == '__main__':
             if line == "Ready":
                 ServoReady = 1 
                 mode = 1
-                
+    
+    #mode 1: get points cloud
+    while mode == 1 : 
+        ser.write("s"+"Start"+"/n")
+        if ser.in_waiting > 0: 
+            line = ser.readline().decode('utf-8').rstrip()
+            if line == "Scan done" :
+                mode = 2
+            else :
+                points_cloud.append(line)
+            # print(line)        
+
+    
+    
     #mode 2: calibration 
-    while mode == 1 :
+    while mode == 2 :
         # Turn on laser
         GPIO.output(tll, GPIO.HIGH)
         # Capture frame
@@ -179,60 +174,65 @@ if __name__ == '__main__':
         # Stop sending command to servos
         # when ServoReady = 0                 
         if ServoReady == 1:
-            if cnt == 0 :
-                # Add x, y, z
-#                 x = file[cnt * 3]
-#                 y = file[cnt * 3 + 1]
-#                 z = file[cnt * 3 + 2]
-#                 pan, tilt = cart2sph(x, y, z)
-                pan,tilt = GetPanTilt(file_index[cnt],rawM)  
-                MotorControl(pan,tilt)      
-                ServoReady = 0
-            elif cnt == 1 :
-#                 x = file[cnt * 3]
-#                 y = file[cnt * 3 + 1]
-#                 z = file[cnt * 3 + 2]
-                #pan, tilt = cart2sph(x, y, z)
-                pan,tilt = GetPanTilt(file_index[cnt],rawM) 
-                MotorControl(pan,tilt) 
-                ServoReady = 0
-            elif cnt == 2 :
-                # Add x, y, z
-#                 x = file[cnt * 3]
-#                 y = file[cnt * 3 + 1]
-#                 z = file[cnt * 3 + 2]
-                #pan, tilt = cart2sph(x, y, z)
-                pan,tilt = GetPanTilt(file_index[cnt],rawM) 
-                MotorControl(pan,tilt) 
-                ServoReady = 0
-            elif cnt == 3 :
-                # Add x, y, z
-#                 x = file[cnt * 3]
-#                 y = file[cnt * 3 + 1]
-#                 z = file[cnt * 3 + 2]
-#                 pan, tilt = cart2sph(x, y, z)
-                pan,tilt = GetPanTilt(file_index[cnt],rawM) 
-                MotorControl(pan,tilt) 
-                ServoReady = 0
-            elif cnt == 4 :
-                # Add x, y, z
-#                 x = file[cnt * 3]
-#                 y = file[cnt * 3 + 1]
-#                 z = file[cnt * 3 + 2]                
-#                 pan, tilt = cart2sph(x, y, z)
-                pan,tilt = GetPanTilt(file_index[cnt],rawM) 
-                MotorControl(pan,tilt) 
-                ServoReady = 0
-            elif cnt == 5 :
-                # Add x, y, z 
-#                 x = file[cnt * 3]
-#                 y = file[cnt * 3 + 1]
-#                 z = file[cnt * 3 + 2]
-#                 pan, tilt = cart2sph(x, y, z)
-                pan,tilt = GetPanTilt(file_index[cnt],rawM) 
-                MotorControl(pan,tilt) 
-                ServoReady = 0    
-            elif cnt == 6 :
+            if cnt < number_of_samples :
+                 pan,tilt = GetPanTilt(file_index[cnt],rawM)  
+                 MotorControl(pan,tilt)      
+                 ServoReady = 0
+            else :               
+#             if cnt == 0 :
+#                 # Add x, y, z
+# #                 x = file[cnt * 3]
+# #                 y = file[cnt * 3 + 1]
+# #                 z = file[cnt * 3 + 2]
+# #                 pan, tilt = cart2sph(x, y, z)
+#                 pan,tilt = GetPanTilt(file_index[cnt],rawM)  
+#                 MotorControl(pan,tilt)      
+#                 ServoReady = 0
+#             elif cnt == 1 :
+# #                 x = file[cnt * 3]
+# #                 y = file[cnt * 3 + 1]
+# #                 z = file[cnt * 3 + 2]
+#                 #pan, tilt = cart2sph(x, y, z)
+#                 pan,tilt = GetPanTilt(file_index[cnt],rawM) 
+#                 MotorControl(pan,tilt) 
+#                 ServoReady = 0
+#             elif cnt == 2 :
+#                 # Add x, y, z
+# #                 x = file[cnt * 3]
+# #                 y = file[cnt * 3 + 1]
+# #                 z = file[cnt * 3 + 2]
+#                 #pan, tilt = cart2sph(x, y, z)
+#                 pan,tilt = GetPanTilt(file_index[cnt],rawM) 
+#                 MotorControl(pan,tilt) 
+#                 ServoReady = 0
+#             elif cnt == 3 :
+#                 # Add x, y, z
+# #                 x = file[cnt * 3]
+# #                 y = file[cnt * 3 + 1]
+# #                 z = file[cnt * 3 + 2]
+# #                 pan, tilt = cart2sph(x, y, z)
+#                 pan,tilt = GetPanTilt(file_index[cnt],rawM) 
+#                 MotorControl(pan,tilt) 
+#                 ServoReady = 0
+#             elif cnt == 4 :
+#                 # Add x, y, z
+# #                 x = file[cnt * 3]
+# #                 y = file[cnt * 3 + 1]
+# #                 z = file[cnt * 3 + 2]                
+# #                 pan, tilt = cart2sph(x, y, z)
+#                 pan,tilt = GetPanTilt(file_index[cnt],rawM) 
+#                 MotorControl(pan,tilt) 
+#                 ServoReady = 0
+#             elif cnt == 5 :
+#                 # Add x, y, z 
+# #                 x = file[cnt * 3]
+# #                 y = file[cnt * 3 + 1]
+# #                 z = file[cnt * 3 + 2]
+# #                 pan, tilt = cart2sph(x, y, z)
+#                 pan,tilt = GetPanTilt(file_index[cnt],rawM) 
+#                 MotorControl(pan,tilt) 
+#                 ServoReady = 0    
+#             elif cnt == 6 :
             #     MotorControl(pan,tilt)
             #     ServoReady = 0
             # elif cnt == 7 :
@@ -247,7 +247,7 @@ if __name__ == '__main__':
                 
       
     #mode 3: Test
-    while mode == 2 :
+    while mode == 3 :
         # Capture frame
         _, frame = cap.read()
         hsv_image = cv2.cvtColor(frame, cv2.COLOR_BGR2HSV)
@@ -360,25 +360,7 @@ if __name__ == '__main__':
         
                 
       
-        
-      
-        
-      
-        
-      
-        
-      
-        
-      
-        
-      
-        
-      
-        
-      
-        
-      
-        
+             
       
 #     #mode 3: Simulation
 #     # When should we enter mode 3?
