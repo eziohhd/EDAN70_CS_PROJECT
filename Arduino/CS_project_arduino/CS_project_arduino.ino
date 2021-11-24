@@ -88,9 +88,9 @@ void setup()
 }// end setup
 
 void loop()
-{
+{ 
   if(startFlag) {
-    if(tiltCurrentPosition = TILT_MAX)
+    if(tiltCurrentPosition == TILT_MAX)
     {
       scanActive = false;
       Serial.print("Scan done"); //tell raspi when it is done with scanning
@@ -102,7 +102,8 @@ void loop()
       scanActive = true;
     }
   }
-  if(scanActive = true)
+
+  if(scanActive)
   {
     //move the pan server
     if(millis() - previousMillisMoving > intervalMoving) 
@@ -140,7 +141,34 @@ void loop()
       }
     }
     
-     if(servoMoving1 == 0)
+//     if(servoMoving1 == 0)
+//      {
+//        servoMoving2 =   ax12GetRegister(2, AX_MOVING, 1);
+//        tiltCurrentPosition =   ax12GetRegister(2, AX_PRESENT_POSITION_L, 2);
+//        
+//        if(tiltCurrentPosition >= TILT_MIN && tiltCurrentPosition <= TILT_MAX)
+//        {
+//        // might need modification
+//        tiltGoalPositon = tiltCurrentPosition + 20;
+//        if(panGoalPositon == PAN_MIN)
+//        {
+//          panGoalPositon = PAN_MAX;
+//          
+//        }
+//        else
+//        {
+//          panGoalPositon = PAN_MIN;
+//        }
+//        
+//        delay(5);
+//        SetPosition(1,panGoalPositon); //set the position of servo # 1 to '0'
+//        SetPosition(2,tiltGoalPositon); 
+//        servoMoving1 = 1;
+//      }
+//
+//      }
+
+     if(servoMoving1 == 0 or panCurrentPosition == PAN_MIN or panCurrentPosition == PAN_MAX)
       {
         servoMoving2 =   ax12GetRegister(2, AX_MOVING, 1);
         tiltCurrentPosition =   ax12GetRegister(2, AX_PRESENT_POSITION_L, 2);
@@ -166,6 +194,7 @@ void loop()
       }
 
       }
+
   }
   
     servoMonitor();
@@ -193,7 +222,7 @@ void loop()
        }
       }
       else {
-        if (inputString = "Start") {
+        if (inputString == "Start") {
             startFlag = true;
         }
       }
