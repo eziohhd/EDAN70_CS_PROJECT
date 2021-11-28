@@ -4,7 +4,7 @@ Created on Thu Nov 11 18:53:37 2021
 
 @author: 42447
 """
-
+import inquirer
 import serial
 import time
 import cv2
@@ -110,16 +110,49 @@ if __name__ == '__main__':
             line = ser.readline().decode('utf-8').rstrip()
             print(line)
             if line == "Ready":
-                ServoReady = 1 
-                mode = 1
+                ServoReady = 1
+                questions = [
+                inquirer.List('next',
+                    message="Scanning or Calibration?",
+                    choices=['Scanning', 'Calibration'],),
+                      ]
+                answers = inquirer.prompt(questions)
+                if answers['next'] == "Scanning":
+                    string_scan_temp = 's'+"StartScanning"+'\n'
+                    string_scan = bytes(string_scan_temp,'utf-8')
+                    ser.write(bytes(string_scan))
+                    mode = 1
+                else:
+                    string_cal_temp = 's'+"StartCalibration"+'\n'
+                    string_cal = bytes(string_cal_temp,'utf-8')
+                    ser.write(bytes(string_cal))
+                    mode = 2
     
     #mode 1: get points cloud
-    while mode == 1 : 
-        ser.write("s"+"Start"+"/n")
+    while mode == 1 :
+#         questions = [
+#         inquirer.List('next',
+#                   message="Scanning or Calibration?",
+#                   choices=['Scanning', 'Calibration'],),
+#                     ]
+#         answers = inquirer.prompt(questions)
+#         print(answers['next'])
+#         if answers['next'] == "Scanning":
+#             string_scan_temp = 's'+"StartScanning"+'\n'
+#             string_scan = bytes(string_scan_temp,'utf-8')
+#             ser.write(bytes(string_scan))
+#         else:
+#             string_cal_temp = 's'+"StartCalibration"+'\n'
+#             string_cal = bytes(string_cal_temp,'utf-8')
+#             ser.write(bytes(string_cal))
+#             mode = 2
+            
         if ser.in_waiting > 0: 
             line = ser.readline().decode('utf-8').rstrip()
+            print(line)
             if line == "Scan done" :
-                mode = 2
+                np.savetxt('points_cloud.csv', np.array(points_cloud), fmt="%s",delimiter=',')
+                mode = 4
             else :
                 points_cloud.append(line)
             # print(line)        
