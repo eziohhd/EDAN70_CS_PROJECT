@@ -329,13 +329,20 @@ if __name__ == '__main__':
       
 # beetle test             
     while mode == 4 :
-    	direction = np.array([45/180*math.pi,30/180*math.pi]);  #The angle relationship betwee the laser and the beetle that we want
-	beetle_location = [120,300];                  # Detect the beetle location
-	new_points = ConvertXYZ(beetle_location,points);
-	angle_distance = GetAngle(new_points) 
-	[index,laser_target] = GetLaserTarget(direction,angle_distance,points)
-	print(index)
-	print(laser_target)
+	beetle_location = [120,300];    
+    direction = np.array([0/180*math.pi,90/180*math.pi]);               
+    for i in range(10):#The angle relationship between the laser and the beetle that we want
+        beetle_location_x = 50;
+        beetle_location_y = 50+10*i;
+        beetle_location = [beetle_location_x,beetle_location_y];                  # Detect the beetle location
+        new_points = ConvertXYZ(beetle_location,points);
+        angle_distance = GetAngle(new_points) #new_points 
+        [index,laser_target] = GetLaserTarget(direction,angle_distance,points)
+        print(index)
+        print(laser_target)
+        pan,tilt = GetPanTilt(index,rawM) 
+        MotorControl(pan,tilt) 
+        
 
         
           

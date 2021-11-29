@@ -11,7 +11,7 @@ import pandas as pd
 import numpy as np
 
 
-df = pd.read_csv(r'C:\Users\Nitro 5\Desktop\EDAN70_CS_PROJECT\EDAN70_CS_PROJECT\matlab\data_test.csv',header=None)   #read the csv file (put 'r' before the path string to address any special characters in the path, such as '\'). Don't forget to put the file name at the end of the path + ".csv"
+df = pd.read_csv(r'C:\Users\Nitro 5\Desktop\EDAN70_CS_PROJECT\EDAN70_CS_PROJECT\matlab\points_cloud.csv',header=None)   #read the csv file (put 'r' before the path string to address any special characters in the path, such as '\'). Don't forget to put the file name at the end of the path + ".csv"
 
 # df = open('table.csv')
 rawM = df.to_numpy()
@@ -33,11 +33,16 @@ for i in range(points_size):
 
 file = GetPointsForCalibration(T,points)
 test_index,test = GetPointsForVerification(T,points)
-direction = np.array([45/180*math.pi,30/180*math.pi]);  #The angle relationship between the laser and the beetle that we want
-beetle_location = [120,300];                  # Detect the beetle location
-new_points = ConvertXYZ(beetle_location,points);
-angle_distance = GetAngle(new_points) 
-[index,laser_target] = GetLaserTarget(direction,angle_distance,points)
+direction = np.array([0/180*math.pi,90/180*math.pi]); 
+for i in range(10):#The angle relationship between the laser and the beetle that we want
+    beetle_location_x = 50;
+    beetle_location_y = 50+10*i;
+    beetle_location = [beetle_location_x,beetle_location_y];                  # Detect the beetle location
+    new_points = ConvertXYZ(beetle_location,points);
+    angle_distance = GetAngle(new_points) #new_points 
+    [index,laser_target] = GetLaserTarget(direction,angle_distance,points)
+    print(index)
+    print(laser_target)
 
 
 
