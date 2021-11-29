@@ -328,8 +328,7 @@ if __name__ == '__main__':
                 
       
 # beetle test             
-    while mode == 4 :
-	beetle_location = [120,300];    
+    while mode == 4 :   
     direction = np.array([0/180*math.pi,90/180*math.pi]);               
     for i in range(10):#The angle relationship between the laser and the beetle that we want
         beetle_location_x = 50;
