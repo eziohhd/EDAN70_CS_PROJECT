@@ -51,6 +51,23 @@ def get_corr_point(M,u,v):
     p3 = np.array([[x],[y],[z]])
     return p3
 
+# get polar coordinate system and cartesian coordinate system
+def raw2polar_cart(rawM):
+    
+    T = np.zeros((int(rawM.size/5),3))
+    points_size = int(T.size/3)
+    points = np.zeros((points_size,3))
+    for i in range(points_size):      
+        T[i,0] =  mapfun(rawM[5*i,0]*256+rawM[5*i+1,0],0,4096,0,2*math.pi)
+        T[i,1] =  mapfun(rawM[5*i+2,0]*256+rawM[5*i+3,0],1024,3072,0,math.pi)
+        T[i,2] =  rawM[5*i+4,0]    
+    for i in range(points_size):
+        points[i,0] = T[i,2]*math.sin(T[i,1])*math.cos(T[i,0])
+        points[i,1] = T[i,2]*math.sin(T[i,1])*math.sin(T[i,0])
+        points[i,2]=16-math.cos(T[i,1])*T[i,2]
+        
+    return T,points
+
 
 if __name__ == '__main__':
     
@@ -62,23 +79,9 @@ if __name__ == '__main__':
       
     
     # Get the data from Lidar and process them to get the polar points and xyz points
-    df = pd.read_csv(r'data_test.csv',header=None)   #read the csv file (put 'r' before the path string to address any special characters in the path, such as '\'). Don't forget to put the file name at the end of the path + ".csv"
+    df = pd.read_csv(r'points_cloud.csv',header=None)   #read the csv file (put 'r' before the path string to address any special characters in the path, such as '\'). Don't forget to put the file name at the end of the path + ".csv"
     rawM = df.to_numpy()
-    T = np.zeros((int(rawM.size/5),3))
-    points_size = int(T.size/3)
-    points = np.zeros((points_size,3))
-    for i in range(points_size):
-        
-        T[i,0] =  mapfun(rawM[5*i,0]*256+rawM[5*i+1,0],0,4096,0,2*math.pi)
-        T[i,1] =  mapfun(rawM[5*i+2,0]*256+rawM[5*i+3,0],1024,3072,0,math.pi)
-        T[i,2] =  rawM[5*i+4,0]
-    
-    for i in range(points_size):
-        
-        points[i,0] = T[i,2]*math.sin(T[i,1])*math.cos(T[i,0])
-        points[i,1] = T[i,2]*math.sin(T[i,1])*math.sin(T[i,0])
-        points[i,2]=16-math.cos(T[i,1])*T[i,2]
-    
+    T,points = raw2polar_cart(rawM)
     file_index,file = GetPointsForCalibration(T,points) #points for calibration
     test_index,test = GetPointsForVerification(T,points)#points for verification 
     
@@ -86,7 +89,7 @@ if __name__ == '__main__':
     A = []
     points_cloud = []
     # define the number of points we would like to take in calibration
-    number_of_samples = 10 
+    number_of_samples = 6 
     x = 0
     y = 0
     z = 0
@@ -128,30 +131,16 @@ if __name__ == '__main__':
                     ser.write(bytes(string_cal))
                     mode = 2
     
-    #mode 1: get points cloud
-    while mode == 1 :
-#         questions = [
-#         inquirer.List('next',
-#                   message="Scanning or Calibration?",
-#                   choices=['Scanning', 'Calibration'],),
-#                     ]
-#         answers = inquirer.prompt(questions)
-#         print(answers['next'])
-#         if answers['next'] == "Scanning":
-#             string_scan_temp = 's'+"StartScanning"+'\n'
-#             string_scan = bytes(string_scan_temp,'utf-8')
-#             ser.write(bytes(string_scan))
-#         else:
-#             string_cal_temp = 's'+"StartCalibration"+'\n'
-#             string_cal = bytes(string_cal_temp,'utf-8')
-#             ser.write(bytes(string_cal))
-#             mode = 2
-            
+    #mode 1: get points cloud and process them
+    while mode == 1 :                   
         if ser.in_waiting > 0: 
             line = ser.readline().decode('utf-8').rstrip()
             print(line)
             if line == "Scan done" :
                 np.savetxt('points_cloud.csv', np.array(points_cloud), fmt="%s",delimiter=',')
+                T,points = raw2polar_cart(np.array(points_cloud))
+                file_index,file = GetPointsForCalibration(T,points) #points for calibration
+                test_index,test = GetPointsForVerification(T,points)#points for verification 
                 mode = 4
             else :
                 points_cloud.append(line)
@@ -178,8 +167,8 @@ if __name__ == '__main__':
             (X, Y, W, H) = cv2.boundingRect(c)
             cv2.rectangle(frame, (X, Y), (X + W, Y + H), (255, 0, 0), 3)
 #             area=cv2.contourArea(c)
-        cv2.imshow("Frame", frame)
-        cv2.imshow("green", green)
+#         cv2.imshow("Frame", frame)
+#         cv2.imshow("green", green)
         #if there are data in serial port    
         if ser.in_waiting > 0: 
             line = ser.readline().decode('utf-8').rstrip()
@@ -212,62 +201,6 @@ if __name__ == '__main__':
                  MotorControl(pan,tilt)      
                  ServoReady = 0
             else :               
-#             if cnt == 0 :
-#                 # Add x, y, z
-# #                 x = file[cnt * 3]
-# #                 y = file[cnt * 3 + 1]
-# #                 z = file[cnt * 3 + 2]
-# #                 pan, tilt = cart2sph(x, y, z)
-#                 pan,tilt = GetPanTilt(file_index[cnt],rawM)  
-#                 MotorControl(pan,tilt)      
-#                 ServoReady = 0
-#             elif cnt == 1 :
-# #                 x = file[cnt * 3]
-# #                 y = file[cnt * 3 + 1]
-# #                 z = file[cnt * 3 + 2]
-#                 #pan, tilt = cart2sph(x, y, z)
-#                 pan,tilt = GetPanTilt(file_index[cnt],rawM) 
-#                 MotorControl(pan,tilt) 
-#                 ServoReady = 0
-#             elif cnt == 2 :
-#                 # Add x, y, z
-# #                 x = file[cnt * 3]
-# #                 y = file[cnt * 3 + 1]
-# #                 z = file[cnt * 3 + 2]
-#                 #pan, tilt = cart2sph(x, y, z)
-#                 pan,tilt = GetPanTilt(file_index[cnt],rawM) 
-#                 MotorControl(pan,tilt) 
-#                 ServoReady = 0
-#             elif cnt == 3 :
-#                 # Add x, y, z
-# #                 x = file[cnt * 3]
-# #                 y = file[cnt * 3 + 1]
-# #                 z = file[cnt * 3 + 2]
-# #                 pan, tilt = cart2sph(x, y, z)
-#                 pan,tilt = GetPanTilt(file_index[cnt],rawM) 
-#                 MotorControl(pan,tilt) 
-#                 ServoReady = 0
-#             elif cnt == 4 :
-#                 # Add x, y, z
-# #                 x = file[cnt * 3]
-# #                 y = file[cnt * 3 + 1]
-# #                 z = file[cnt * 3 + 2]                
-# #                 pan, tilt = cart2sph(x, y, z)
-#                 pan,tilt = GetPanTilt(file_index[cnt],rawM) 
-#                 MotorControl(pan,tilt) 
-#                 ServoReady = 0
-#             elif cnt == 5 :
-#                 # Add x, y, z 
-# #                 x = file[cnt * 3]
-# #                 y = file[cnt * 3 + 1]
-# #                 z = file[cnt * 3 + 2]
-# #                 pan, tilt = cart2sph(x, y, z)
-#                 pan,tilt = GetPanTilt(file_index[cnt],rawM) 
-#                 MotorControl(pan,tilt) 
-#                 ServoReady = 0    
-#             elif cnt == 6 :
-            #     MotorControl(pan,tilt)
-            #     ServoReady = 0
             # elif cnt == 7 :
                 # get the transformation matrix M
                 #by solving a Homogeneous Linear
@@ -276,7 +209,7 @@ if __name__ == '__main__':
                 print(M)
                 servoReady = 1
                 cnt = 0               
-                mode = 2
+                mode = 3
                 
       
     #mode 3: Test
@@ -296,8 +229,8 @@ if __name__ == '__main__':
             (X, Y, W, H) = cv2.boundingRect(c)
             cv2.rectangle(frame, (X, Y), (X + W, Y + H), (255, 0, 0), 3)
 #             area=cv2.contourArea(c)
-        cv2.imshow("Frame", frame)
-        cv2.imshow("green", green)
+#         cv2.imshow("Frame", frame)
+#         cv2.imshow("green", green)
         #if there are data in serial port    
         if ser.in_waiting > 0: 
             line = ser.readline().decode('utf-8').rstrip()
@@ -389,12 +322,23 @@ if __name__ == '__main__':
             #     MotorControl(pan,tilt)
                 ServoReady = 0
             # elif cnt == 7 :
-                print(diff)        
+                print(diff)  
+                mode == 4      
         
                 
       
-             
-      
+# beetle test             
+    while mode == 4 :
+    	direction = np.array([45/180*math.pi,30/180*math.pi]);  #The angle relationship betwee the laser and the beetle that we want
+	beetle_location = [120,300];                  # Detect the beetle location
+	new_points = ConvertXYZ(beetle_location,points);
+	angle_distance = GetAngle(new_points) 
+	[index,laser_target] = GetLaserTarget(direction,angle_distance,points)
+	print(index)
+	print(laser_target)
+
+        
+          
 #     #mode 3: Simulation
 #     # When should we enter mode 3?
 #     while mode == 3 :
