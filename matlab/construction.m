@@ -1,4 +1,4 @@
-raw = readtable('data_test.csv','ReadVariableNames',false);
+raw = readtable('points_cloud.csv','ReadVariableNames',false);
 rawM = raw{1:size(raw),:};
 nrPoint = length(rawM)/5;
 for i =1: nrPoint

@@ -43,7 +43,7 @@ boolean scanStart  = false;     // decide when the sacn should start
 boolean calibrationStart  = false;     // decide when the sacn should start
 
 int mappedTiltCurrentPosition=0;
-int mappedTiltCurrentPosition=0;
+int mappedPanCurrentPosition=0;
 int servoMoving1 = 0;            //whether or not the servo is moving, 0 = not moving, 1 = moving
 int panGoalPositon = PAN_MIN;   // Goal Position, where we want the servo to go
 int panCurrentPosition;         //Actual position of the servo
@@ -146,8 +146,6 @@ void loop() {
 //  scan();
   if(mappedTiltCurrentPosition >= TILT_MAX)
   {
-     Serial.println(tiltCurrentPosition);
-     Serial.println(mappedTiltCurrentPosition);
     Serial.println("Scan done");
     scanActive = false;
   }
