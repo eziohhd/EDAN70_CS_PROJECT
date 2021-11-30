@@ -4,6 +4,7 @@ Created on Thu Nov 11 18:53:37 2021
 
 @author: 42447
 """
+import datetime
 import inquirer
 import serial
 import time
@@ -11,6 +12,7 @@ import cv2
 import numpy as np
 import RPi.GPIO as GPIO
 import pandas as pd
+import random
 from numpy.linalg import svd
 from numpy.linalg import matrix_rank as rank
 from scipy.linalg import diagsvd
@@ -21,7 +23,7 @@ def MotorControl(location1,location2):
     string_temp = 's'+str(location1)+str(location2)+'\n'
     string = bytes(string_temp,'utf-8')
     ser.write(bytes(string))
-    time.sleep(1)       
+    #time.sleep(1)       
     return None
 
 # Solve a Homogeneous Linear Equation System: Ax=0
@@ -58,9 +60,9 @@ def raw2polar_cart(rawM):
     points_size = int(T.size/3)
     points = np.zeros((points_size,3))
     for i in range(points_size):      
-        T[i,0] =  mapfun(rawM[5*i,0]*256+rawM[5*i+1,0],0,4096,0,2*math.pi)
-        T[i,1] =  mapfun(rawM[5*i+2,0]*256+rawM[5*i+3,0],1024,3072,0,math.pi)
-        T[i,2] =  rawM[5*i+4,0]    
+        T[i,0] =  mapfun(rawM[5*i]*256+rawM[5*i+1],0,4096,0,2*math.pi)
+        T[i,1] =  mapfun(rawM[5*i+2]*256+rawM[5*i+3],1024,3072,0,math.pi)
+        T[i,2] =  rawM[5*i+4]    
     for i in range(points_size):
         points[i,0] = T[i,2]*math.sin(T[i,1])*math.cos(T[i,0])
         points[i,1] = T[i,2]*math.sin(T[i,1])*math.sin(T[i,0])
@@ -78,18 +80,13 @@ if __name__ == '__main__':
     # change file path
       
     
-    # Get the data from Lidar and process them to get the polar points and xyz points
-    df = pd.read_csv(r'points_cloud.csv',header=None)   #read the csv file (put 'r' before the path string to address any special characters in the path, such as '\'). Don't forget to put the file name at the end of the path + ".csv"
-    rawM = df.to_numpy()
-    T,points = raw2polar_cart(rawM)
-    file_index,file = GetPointsForCalibration(T,points) #points for calibration
-    test_index,test = GetPointsForVerification(T,points)#points for verification 
+  
     
     diff = []
     A = []
     points_cloud = []
     # define the number of points we would like to take in calibration
-    number_of_samples = 6 
+    number_of_samples = 30
     x = 0
     y = 0
     z = 0
@@ -97,6 +94,7 @@ if __name__ == '__main__':
     mode = 0
     led = 14
     tll = 15
+    random_index = 0
     GPIO.setwarnings(False)
     GPIO.setmode(GPIO.BCM)
     GPIO.setup(14,GPIO.OUT)
@@ -116,8 +114,8 @@ if __name__ == '__main__':
                 ServoReady = 1
                 questions = [
                 inquirer.List('next',
-                    message="Scanning or Calibration?",
-                    choices=['Scanning', 'Calibration'],),
+                    message="What do you want to do next?",
+                    choices=['Scanning', 'Calibration','beetle_test'],),
                       ]
                 answers = inquirer.prompt(questions)
                 if answers['next'] == "Scanning":
@@ -126,10 +124,25 @@ if __name__ == '__main__':
                     ser.write(bytes(string_scan))
                     mode = 1
                 else:
-                    string_cal_temp = 's'+"StartCalibration"+'\n'
-                    string_cal = bytes(string_cal_temp,'utf-8')
-                    ser.write(bytes(string_cal))
-                    mode = 2
+                    # Get the data from Lidar and process them to get the polar points and xyz points
+                    df = pd.read_csv(r'points_cloud.csv',header=None)   #read the csv file (put 'r' before the path string to address any special characters in the path, such as '\'). Don't forget to put the file name at the end of the path + ".csv"
+                    rawM = df.to_numpy()
+                    T,points = raw2polar_cart(rawM)
+                    if answers['next'] == "Calibration":
+                        string_cal_temp = 's'+"StartCalibration"+'\n'
+                        string_cal = bytes(string_cal_temp,'utf-8')
+                        ser.write(bytes(string_cal))
+                        # Get the data from Lidar and process them to get the polar points and xyz points
+                        #file_index,file = GetPointsForCalibration(T,points) #points for calibration
+                        test_index,test = GetPointsForVerification(T,points)#points for verification 
+                        mode = 2
+                    else:
+                        
+                        string_cal_temp = 's'+"StartCalibration"+'\n'
+                        string_cal = bytes(string_cal_temp,'utf-8')
+                        ser.write(bytes(string_cal))
+                        cnt = 0
+                        mode = 4
     
     #mode 1: get points cloud and process them
     while mode == 1 :                   
@@ -138,19 +151,16 @@ if __name__ == '__main__':
             print(line)
             if line == "Scan done" :
                 np.savetxt('points_cloud.csv', np.array(points_cloud), fmt="%s",delimiter=',')
-                T,points = raw2polar_cart(np.array(points_cloud))
-                file_index,file = GetPointsForCalibration(T,points) #points for calibration
-                test_index,test = GetPointsForVerification(T,points)#points for verification 
-                mode = 4
+                T,points = raw2polar_cart(np.array(points_cloud)) 
+                mode = 2
             else :
                 points_cloud.append(line)
-            # print(line)        
 
     
     
     #mode 2: calibration 
     while mode == 2 :
-        # Turn on laser
+        # Turn off laser
         GPIO.output(tll, GPIO.HIGH)
         # Capture frame
         _, frame = cap.read()
@@ -184,9 +194,12 @@ if __name__ == '__main__':
                     # (x, y, z) in 3D model
                     # (u, v) in frame
                     # Modify x,y,z
-                    x = points[int(file_index[cnt]),0]
-                    y = points[int(file_index[cnt]),1]
-                    z = points[int(file_index[cnt]),2]
+                    x = points[int(random_index),0]
+                    y = points[int(random_index),1]
+                    z = points[int(random_index),2]
+#                     x = points[int(file_index[cnt]),0]
+#                     y = points[int(file_index[cnt]),1]
+#                     z = points[int(file_index[cnt]),2
                     print(x,y,z)
                     A = Matrix(x,y,z,u,v,A)
                     cnt = cnt + 1
@@ -197,7 +210,9 @@ if __name__ == '__main__':
         # when ServoReady = 0                 
         if ServoReady == 1:
             if cnt < number_of_samples :
-                 pan,tilt = GetPanTilt(file_index[cnt],rawM)  
+                 random_index = random.randrange(round(rawM.size/5*0.95),round(rawM.size/5*0.96)) 
+                 pan,tilt = GetPanTilt(random_index,rawM)  
+                 #pan,tilt = GetPanTilt(file_index[cnt],rawM)  
                  MotorControl(pan,tilt)      
                  ServoReady = 0
             else :               
@@ -205,6 +220,7 @@ if __name__ == '__main__':
                 # get the transformation matrix M
                 #by solving a Homogeneous Linear
                 #Equation System
+                GPIO.output(tll, GPIO.HIGH)
                 M = sol_svd(A)
                 print(M)
                 servoReady = 1
@@ -248,9 +264,9 @@ if __name__ == '__main__':
                     print(u,v)
                     print(p3)
                     # Add x, y, z
-                    x = points[int(test_index[cnt]),0]
-                    y = points[int(test_index[cnt]),1]
-                    z = points[int(test_index[cnt]),2]
+                    x = points[int(random_index),0] #test_index[cnt]
+                    y = points[int(random_index),1]
+                    z = points[int(random_index),2]
                     print(x,y,z)
                     p3_real = np.array([[x], [y], [z]])
                     diff.append(p3-p3_real)                    
@@ -271,7 +287,8 @@ if __name__ == '__main__':
 #                 y = file[cnt * 3 + 1]
 #                 z = file[cnt * 3 + 2]
 #                 pan, tilt = cart2sph(x, y, z)
-                pan,tilt = GetPanTilt(test_index[cnt],rawM)  
+                random_index = random.randrange(round(rawM.size/5*0.95),round(rawM.size/5*0.96))
+                pan,tilt = GetPanTilt(random_index,rawM)  
                 MotorControl(pan,tilt)      
                 ServoReady = 0
             elif cnt == 1 :
@@ -279,7 +296,8 @@ if __name__ == '__main__':
 #                 y = file[cnt * 3 + 1]
 #                 z = file[cnt * 3 + 2]
                 #pan, tilt = cart2sph(x, y, z)
-                pan,tilt = GetPanTilt(test_index[cnt],rawM) 
+                random_index = random.randrange(round(rawM.size/5*0.95),round(rawM.size/5*0.96))
+                pan,tilt = GetPanTilt(random_index,rawM) 
                 MotorControl(pan,tilt) 
                 ServoReady = 0
             elif cnt == 2 :
@@ -288,7 +306,8 @@ if __name__ == '__main__':
 #                 y = file[cnt * 3 + 1]
 #                 z = file[cnt * 3 + 2]
                 #pan, tilt = cart2sph(x, y, z)
-                pan,tilt = GetPanTilt(test_index[cnt],rawM) 
+                random_index = random.randrange(round(rawM.size/5*0.95),round(rawM.size/5*0.96))
+                pan,tilt = GetPanTilt(random_index,rawM) 
                 MotorControl(pan,tilt) 
                 ServoReady = 0
             elif cnt == 3 :
@@ -297,7 +316,8 @@ if __name__ == '__main__':
 #                 y = file[cnt * 3 + 1]
 #                 z = file[cnt * 3 + 2]
 #                 pan, tilt = cart2sph(x, y, z)
-                pan,tilt = GetPanTilt(test_index[cnt],rawM) 
+                random_index = random.randrange(round(rawM.size/5*0.95),round(rawM.size/5*0.96))
+                pan,tilt = GetPanTilt(random_index,rawM) 
                 MotorControl(pan,tilt) 
                 ServoReady = 0
             elif cnt == 4 :
@@ -306,7 +326,8 @@ if __name__ == '__main__':
 #                 y = file[cnt * 3 + 1]
 #                 z = file[cnt * 3 + 2]                
 #                 pan, tilt = cart2sph(x, y, z)
-                pan,tilt = GetPanTilt(test_index[cnt],rawM) 
+                random_index = random.randrange(round(rawM.size/5*0.95),round(rawM.size/5*0.96))
+                pan,tilt = GetPanTilt(random_index,rawM) 
                 MotorControl(pan,tilt) 
                 ServoReady = 0
             elif cnt == 5 :
@@ -315,32 +336,64 @@ if __name__ == '__main__':
 #                 y = file[cnt * 3 + 1]
 #                 z = file[cnt * 3 + 2]
 #                 pan, tilt = cart2sph(x, y, z)
-                pan,tilt = GetPanTilt(test_index[cnt],rawM) 
+                random_index = random.randrange(round(rawM.size/5*0.95),round(rawM.size/5*0.96))
+                pan,tilt = GetPanTilt(random_index,rawM) 
                 MotorControl(pan,tilt) 
                 ServoReady = 0     
             elif cnt == 6 :
             #     MotorControl(pan,tilt)
                 ServoReady = 0
             # elif cnt == 7 :
-                print(diff)  
-                mode == 4      
-        
-                
+                print(diff)
+                # Turn off laser
+                GPIO.output(tll, GPIO.LOW)
+                questions = [
+                inquirer.List('next',
+                    message="Do you want to do beetle test?",
+                    choices=['yes', 'no'],),
+                      ]
+                answers = inquirer.prompt(questions)
+                if answers['next'] == "yes":
+                    string_scan_temp = 's'+"StartScanning"+'\n'
+                    string_scan = bytes(string_scan_temp,'utf-8')
+                    ser.write(bytes(string_scan))
+                    mode = 4
+                else:
+                    GPIO.output(tll,GPIO.LOW)
+                            
       
 # beetle test             
-    while mode == 4 :   
-    direction = np.array([0/180*math.pi,90/180*math.pi]);               
-    for i in range(10):#The angle relationship between the laser and the beetle that we want
-        beetle_location_x = 50;
-        beetle_location_y = 50+10*i;
-        beetle_location = [beetle_location_x,beetle_location_y];                  # Detect the beetle location
-        new_points = ConvertXYZ(beetle_location,points);
-        angle_distance = GetAngle(new_points) #new_points 
-        [index,laser_target] = GetLaserTarget(direction,angle_distance,points)
-        print(index)
-        print(laser_target)
-        pan,tilt = GetPanTilt(index,rawM) 
-        MotorControl(pan,tilt) 
+    while mode == 4 :
+        GPIO.output(tll,GPIO.HIGH)
+        direction = np.array([0,90/180*math.pi]);
+        phi = math.pi/2      
+        beetle_moving_direction = phi #The angle between the movement direction of the dung beetle and the positive X axis
+        direction = direction + phi # Rotate 
+        if ser.in_waiting > 0: 
+            line = ser.readline().decode('utf-8').rstrip()
+            print(line)
+        # The servos are in position    
+            if line == "In position":
+                cnt = cnt + 1
+                ServoReady = 1
+                end = datetime.datetime.now()
+                period = end - start
+                
+                print(int(period.total_seconds()*1000),"ms")
+                    
+            if ServoReady == 1:
+                if cnt < 10:
+                    beetle_location_x = 10*cnt;
+                    beetle_location_y = 10*cnt;
+                    beetle_location = [beetle_location_x,beetle_location_y];                  # Detect the beetle location
+                    new_points = ConvertXYZ(beetle_location,points);
+                    angle_distance = GetAngle(new_points) #new_points 
+                    [index,laser_target] = GetLaserTarget(direction,angle_distance,points)
+                    print("laser target ",laser_target)
+                    pan,tilt = GetPanTilt(index,rawM)
+                    start = datetime.datetime.now()
+                    MotorControl(pan,tilt)
+                    ServoReady = 0
         
 
         
