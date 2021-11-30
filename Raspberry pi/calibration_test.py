@@ -363,10 +363,10 @@ if __name__ == '__main__':
                             
       
 # beetle test             
-    while mode == 4 :
+    while mode == 4 :    
         GPIO.output(tll,GPIO.HIGH)
         direction = np.array([0,90/180*math.pi]);
-        phi = math.pi/2      
+        phi = 0    
         beetle_moving_direction = phi #The angle between the movement direction of the dung beetle and the positive X axis
         direction = direction + phi # Rotate 
         if ser.in_waiting > 0: 
@@ -382,9 +382,12 @@ if __name__ == '__main__':
                 print(int(period.total_seconds()*1000),"ms")
                     
             if ServoReady == 1:
-                if cnt < 10:
-                    beetle_location_x = 10*cnt;
-                    beetle_location_y = 10*cnt;
+                if cnt < 20:
+		    random_x = random.randrange(0,640)
+		    random_y = random.randrange(0,480)
+		    random_location = get_corr_point(M, random_x, random_y)
+                    beetle_location_x = random_location[0]
+                    beetle_location_y = random_location[1];
                     beetle_location = [beetle_location_x,beetle_location_y];                  # Detect the beetle location
                     new_points = ConvertXYZ(beetle_location,points);
                     angle_distance = GetAngle(new_points) #new_points 
