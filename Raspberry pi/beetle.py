@@ -34,6 +34,7 @@ for i in range(points_size):
 file = GetPointsForCalibration(T,points)
 test_index,test = GetPointsForVerification(T,points)
 direction = np.array([0/180*math.pi,90/180*math.pi]); 
+direction_new = direction - math.pi*0.1
 for i in range(10):#The angle relationship between the laser and the beetle that we want
     beetle_location_x = 50;
     beetle_location_y = 50+10*i;

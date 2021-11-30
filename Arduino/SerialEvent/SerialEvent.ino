@@ -351,9 +351,9 @@ void servoMonitor() {
     servoMoving1 =   ax12GetRegister(1, AX_MOVING, 1);
     servoMoving2 =   ax12GetRegister(2, AX_MOVING, 1);
     if (servoMoving1 == 0 and servoMoving2 == 0) {
-      delay(5000);
+      delay(50);
       Serial.println("In position");
-      delay(500);
+      delay(50);
       ServoMoving = false;
     }
   }
