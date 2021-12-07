@@ -35,7 +35,7 @@ libcamera-jpeg -o test.jpg
 ```
 - Find the .py file and execute
 ```
-cd Desktop/Raspberry/ && python3 calibration_test.py
+python3 Desktop/Raspberry/calibration_test.py
 ```
 
 
