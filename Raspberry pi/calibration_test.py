@@ -13,6 +13,7 @@ import numpy as np
 import RPi.GPIO as GPIO
 import pandas as pd
 import random
+import sys
 from numpy.linalg import svd
 from numpy.linalg import matrix_rank as rank
 from scipy.linalg import diagsvd
@@ -149,8 +150,7 @@ if __name__ == '__main__':
             print(line)
             if line == "Scan done" :
                 np.savetxt('points_cloud.csv', np.array(points_cloud), fmt="%s",delimiter=',')
-                T,points = raw2polar_cart(np.array(points_cloud)) 
-                mode = 2
+                sys.exit()
             else :
                 points_cloud.append(line)
 
@@ -311,19 +311,7 @@ if __name__ == '__main__':
                 print(diff)
                 # Turn off laser
                 GPIO.output(tll, GPIO.LOW)
-                questions = [
-                inquirer.List('next',
-                    message="Do you want to do dung beetle redirection?",
-                    choices=['yes', 'no'],),
-                      ]
-                answers = inquirer.prompt(questions)
-                if answers['next'] == "yes":
-                    string_test_temp = 's'+"StartCalibration"+'\n'
-                    string_test = bytes(string_test_temp,'utf-8')
-                    ser.write(bytes(string_test))
-                    mode = 4
-                else:
-                    GPIO.output(tll,GPIO.LOW)
+                sys.exit()
                             
       
 # beetle test             
