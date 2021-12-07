@@ -39,9 +39,9 @@ python3 Desktop/Raspberry/calibration_test.py
 ```
 - Select the mode you want:
 
-![figure1](doc/choices.png)
-
 When you place the system in a new room, the first thing you need to do is scanning. After the scanning, you need to do the calibration. The last step is Beetle_redirection. To save your time, you can bypass the scanning and choose calibration if the camera is moved but the system is still in the same place
+
+![figure1](doc/choices.png)
 
 
 
