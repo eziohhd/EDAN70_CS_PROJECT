@@ -18,4 +18,11 @@ In our system, we use python scripts to control the raspberry pi. And the enviro
 ```
 pip3 install inquirer
 ```
-
+- Pandas:
+```
+sudo apt-get install python3-pandas
+```
+- Numpy:
+```
+sudo apt-get install python3-numpy
+```
