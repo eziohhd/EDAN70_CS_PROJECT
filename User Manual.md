@@ -37,6 +37,7 @@ libcamera-jpeg -o test.jpg
 ```
 python3 Desktop/Raspberry/calibration_test.py
 ```
+- Select the mode you want:
 
 
 
