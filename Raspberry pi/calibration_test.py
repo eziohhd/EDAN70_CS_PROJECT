@@ -86,7 +86,7 @@ if __name__ == '__main__':
     A = []
     points_cloud = []
     # define the number of points we would like to take in calibration
-    number_of_samples = 30
+    number_of_samples = 10
     x = 0
     y = 0
     z = 0
@@ -354,16 +354,20 @@ if __name__ == '__main__':
                       ]
                 answers = inquirer.prompt(questions)
                 if answers['next'] == "yes":
-                    string_scan_temp = 's'+"StartScanning"+'\n'
-                    string_scan = bytes(string_scan_temp,'utf-8')
-                    ser.write(bytes(string_scan))
+                    string_test_temp = 's'+"StartCalibration"+'\n'
+                    string_test = bytes(string_test_temp,'utf-8')
+                    ser.write(bytes(string_test))
                     mode = 4
                 else:
                     GPIO.output(tll,GPIO.LOW)
                             
       
 # beetle test             
-    while mode == 4 :    
+    while mode == 4 :
+        #print("here")
+        M = np.array([-4.27812537e-04,-1.06686085e-03,2.39990615e-01,6.98027054e-04,
+                     -7.62708279e-04,2.30234512e-02,1.27127849e-03,2.91672054e-03,
+                     -9.70479398e-01,7.40217951e-06,1.67404146e-05,-5.62584993e-03])
         GPIO.output(tll,GPIO.HIGH)
         direction = np.array([0,90/180*math.pi]);
         phi = 0    
@@ -378,17 +382,21 @@ if __name__ == '__main__':
                 ServoReady = 1
                 end = datetime.datetime.now()
                 period = end - start
-                
                 print(int(period.total_seconds()*1000),"ms")
+                print("in position")
                     
             if ServoReady == 1:
+                #print("here")
                 if cnt < 20:
-		    random_x = random.randrange(0,640)
-		    random_y = random.randrange(0,480)
-		    random_location = get_corr_point(M, random_x, random_y)
+                    random_x = random.randrange(0,640)
+                    random_y = random.randrange(0,480)
+                   
+                    print("location on image ",random_x, random_y)
+                    random_location = get_corr_point(M, random_x, random_y)
                     beetle_location_x = random_location[0]
                     beetle_location_y = random_location[1];
                     beetle_location = [beetle_location_x,beetle_location_y];                  # Detect the beetle location
+                    print("print",beetle_location)
                     new_points = ConvertXYZ(beetle_location,points);
                     angle_distance = GetAngle(new_points) #new_points 
                     [index,laser_target] = GetLaserTarget(direction,angle_distance,points)
