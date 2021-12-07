@@ -9,3 +9,5 @@ The hardware setup has already been done. In case of accidents, web pages relate
 - Laser: https://se.rs-online.com/web/p/laser-modules/1271557
 
 ## Software setup
+### Arduino
+For Arduino, the executable file has been written and does not need to be changed. However, if you want to make some modifications to the executable file, you can modify the Dungbeetle.ino file in the DungBeetle folder.
