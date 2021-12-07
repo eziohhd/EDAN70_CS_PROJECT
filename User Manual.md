@@ -33,7 +33,10 @@ sudo apt-get install python3-numpy
 ```
 libcamera-jpeg -o test.jpg
 ```
-
+- Find the .py file and execute
+```
+cd Desktop/Raspberry/ && python3 calibration_test.py
+```
 
 
 
