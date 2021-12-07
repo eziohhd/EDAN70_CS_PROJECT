@@ -27,7 +27,9 @@ sudo apt-get install python3-pandas
 sudo apt-get install python3-numpy
 ```
 ## Instructions about how to run the system
-
+- After connecting the USB port of the arduino to the Raspberry Pi, power on the two microcontrollers.
+- Use ssh to control the raspberry pi remotely
+- 
 
 
 
