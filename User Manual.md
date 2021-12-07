@@ -14,4 +14,9 @@ For Arduino, the executable file has been written and does not need to be change
 ### Raspberry pi
 In our system, we use python scripts to control the raspberry pi. And the environment and libraries required for the program to run have been configured. In case of raspberry pi is damaged, you can follow the instructions below to install the required libraries.
 - OpenCV: https://qengineering.eu/install-opencv-4.5-on-raspberry-pi-4.html
+- Inquirer: 
+```
+pip3 install inquirer
+
+```
 
