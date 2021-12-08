@@ -318,7 +318,7 @@ if __name__ == '__main__':
     while mode == 4 :
         
         GPIO.output(tll,GPIO.HIGH)
-        direction = np.array([0,90/180*math.pi]);
+        direction = np.array([0,90/180*math.pi])
         phi = 0     #The angle between the movement direction of the dung beetle and the positive X axis
         beetle_moving_direction = phi
         direction = direction + phi # Rotate 
@@ -341,10 +341,10 @@ if __name__ == '__main__':
                     print("location on image ",random_x, random_y)
                     random_location = get_corr_point(M, random_x, random_y)
                     beetle_location_x = random_location[0]
-                    beetle_location_y = random_location[1];
+                    beetle_location_y = random_location[1]
                     beetle_location = [beetle_location_x,beetle_location_y]; # Detect the beetle location
                     print("beetle_location",beetle_location)
-                    new_points = ConvertXYZ(beetle_location,points);
+                    new_points = ConvertXYZ(beetle_location,points)
                     angle_distance = GetAngle(new_points) #new_points 
                     [index,laser_target] = GetLaserTarget(direction,angle_distance,points)
                     print("laser target ",laser_target)
