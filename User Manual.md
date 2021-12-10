@@ -43,7 +43,13 @@ When you place the system in a new room, the first thing you need to do is scann
 
 ![figure1](doc/choices.png)
 
+- Scanning:
+In this mode, the Lidar will scan the whole room and send the pan\&tilt angle data together with the distance data to the Raspberry Pi via serial communication. When the scanning is done, a *scandone* signal will be printed in the terminal which means the scanning process is completed. The data obtained by scanning is stored in *points_cloud.csv* which can be visualized by using *construction.m* in *matlab* folder.
 
+- Calibration:
+In this mode, the laser will randomly point to a certain area on the roof(the area can be modified by changing the index range) to do the calibration. Moreover, you can define the number of points you would like to take in calibration by setting the value of variable *number_of_samples* in the code. When the calibration is done, the system will automatically enter the test mode to verify the performance of calibration by comparing the difference between the calculated location of the laser point and the actual location of the laser point. During the calibration, the transformation matrix will be written into *Calibration_matrix.csv* for further use.
+- Beetle\_redirection:
+Right now this part is just a demo for test for we don't have a real dung beetle to complete our algorithm. However, with the help of pi camera, you can easily get the location of the dung beetle in the image and redirect it by using the algorithm in this mode.
 
 
 
