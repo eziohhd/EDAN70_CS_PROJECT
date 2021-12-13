@@ -195,12 +195,7 @@ void loop() {
   {
    servoMonitor();
   if (stringComplete) {
-   int strlength = inputString.length();
-   if (strlength != 8) {
-    Serial.print(" Input invalid: ");
-    Serial.println(inputString);
-   }
-   else {
+
     inputString.toCharArray(buf,10);
     p1=(buf[0]-48)*1000+(buf[1]-48)*100+(buf[2]-48)*10+(buf[3]-48);
     p2=(buf[4]-48)*1000+(buf[5]-48)*100+(buf[6]-48)*10+(buf[7]-48);
@@ -213,13 +208,11 @@ void loop() {
     Serial.print(",tilt angle is ");
     Serial.println(p2, DEC);
    }
-   }
     //Serial.println(inputString); 
     // clear the string:
     inputString = "";
     stringComplete = false;
   }
-}
 }
 
 
