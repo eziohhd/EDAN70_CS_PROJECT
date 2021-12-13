@@ -1,7 +1,9 @@
 raw = readtable('points_cloud.csv','ReadVariableNames',false);
 rawM = raw{1:size(raw),:};
 nrPoint = length(rawM)/5;
-for i =1: nrPoint
+%nrPoint2 = nrPoint-300;
+round(nrPoint-300)-round(nrPoint*1)
+for i = round(nrPoint-300):1: round(nrPoint*1)
    T(i,1) =  mapfun(rawM(5*i-4,1)*256+rawM(5*i-3,1),0,4096,0,2*pi);
    T(i,2) =  mapfun(rawM(5*i-2,1)*256+rawM(5*i-1,1),1024,3072,0,pi);
    T(i,3) =  rawM(5*i,1);
@@ -33,8 +35,8 @@ for i= 1 : length(F)
 end
 ptCloud = pointCloud(F);
 pcshow(ptCloud);
-model = pcfitcuboid(ptCloud);
-plot(model);
+% model = pcfitcuboid(ptCloud);
+% plot(model);
 
 %% get the top left point angle
 x1=165;
