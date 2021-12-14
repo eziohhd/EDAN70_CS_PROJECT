@@ -20,8 +20,8 @@ from scipy.linalg import diagsvd
 from functions import *
 
 # set servos position
-def MotorControl(location1,location2):        
-    string_temp = 's'+str(location1)+str(location2)+'\n'
+def MotorControl(pan,tilt):        
+    string_temp = 's'+str(pan)+str(tilt)+'\n'
     string = bytes(string_temp,'utf-8')
     ser.write(bytes(string))
     #time.sleep(1)       
@@ -55,8 +55,7 @@ def get_corr_point(M,u,v):
     return p3
 
 # get polar coordinate system and cartesian coordinate system
-def raw2polar_cart(rawM):
-    
+def raw2polar_cart(rawM):   
     T = np.zeros((int(rawM.size/5),3))
     points_size = int(T.size/3)
     points = np.zeros((points_size,3))
@@ -72,13 +71,8 @@ def raw2polar_cart(rawM):
     return T,points
 
 
-if __name__ == '__main__':
-    
-    
+if __name__ == '__main__':  
     cap = cv2.VideoCapture(0)
-    
-    # initialize
-    # change file path
       
     diff = []
     A = []
@@ -150,9 +144,7 @@ if __name__ == '__main__':
                 sys.exit()
             else :
                 points_cloud.append(line)
-
-    
-    
+   
     #mode 2: calibration 
     while mode == 2 :
         # Turn off laser
@@ -170,9 +162,6 @@ if __name__ == '__main__':
             c = max(cnts, key = cv2.contourArea)   
             (X, Y, W, H) = cv2.boundingRect(c)
             cv2.rectangle(frame, (X, Y), (X + W, Y + H), (255, 0, 0), 3)
-#             area=cv2.contourArea(c)
-#         cv2.imshow("Frame", frame)
-#         cv2.imshow("green", green)
         #if there are data in serial port    
         if ser.in_waiting > 0: 
             line = ser.readline().decode('utf-8').rstrip()
@@ -187,7 +176,6 @@ if __name__ == '__main__':
                     print(u,v)
                     # (x, y, z) in 3D model
                     # (u, v) in frame
-                    # Modify x,y,z
                     x = points[int(random_index),0]
                     y = points[int(random_index),1]
                     z = points[int(random_index),2]
@@ -197,12 +185,11 @@ if __name__ == '__main__':
                     ServoReady = 1
                 else :
                   raise ValueError("No object detected!")
-        # Stop sending command to servos
-        # when ServoReady = 0                 
+        # Stop sending command to servos when ServoReady = 0                 
         if ServoReady == 1:
             if cnt < number_of_samples :
                 #get the random points on the roof for calibration
-                 random_index = random.randrange(round(rawM.size/5*0.95),round(rawM.size/5*0.96)) 
+                 random_index = random.randrange(round(rawM.size/5*0.95),round(rawM.size/5)) 
                  pan,tilt = GetPanTilt(random_index,rawM)    
                  MotorControl(pan,tilt)      
                  ServoReady = 0
@@ -213,8 +200,7 @@ if __name__ == '__main__':
                 np.savetxt('Calibration_matrix.csv', np.array(M), fmt="%s",delimiter=',')
                 servoReady = 1
                 cnt = 0               
-                mode = 3
-                
+                mode = 3        
       
     #mode 3: Test
     while mode == 3 :
@@ -230,11 +216,7 @@ if __name__ == '__main__':
             # find the biggest countour (c) by the area
             c = max(cnts, key = cv2.contourArea)   
             (X, Y, W, H) = cv2.boundingRect(c)
-            cv2.rectangle(frame, (X, Y), (X + W, Y + H), (255, 0, 0), 3)
-#             area=cv2.contourArea(c)
-#         cv2.imshow("Frame", frame)
-#         cv2.imshow("green", green)
-        #if there are data in serial port    
+            cv2.rectangle(frame, (X, Y), (X + W, Y + H), (255, 0, 0), 3)   
         if ser.in_waiting > 0: 
             line = ser.readline().decode('utf-8').rstrip()
             print(line)
@@ -245,57 +227,54 @@ if __name__ == '__main__':
                     # compute the center of the contour
                     u = round((X + W) / 2)
                     v = round((Y + H) / 2)
-                    p3 = get_corr_point(M, u, v)
-                    
+                    # get the mapped 3D coordinate
+                    p3 = get_corr_point(M, u, v)                
                     p3 = np.real(p3)
                     print(u,v)
                     print(p3)
-                    # Add x, y, z
+                    # "real" 3D coordinate, from point clouds 
                     x = points[int(random_index),0] 
                     y = points[int(random_index),1]
                     z = points[int(random_index),2]
                     print(x,y,z)
                     p3_real = np.array([[x], [y], [z]])
                     diff.append(p3-p3_real)                    
-                    # (x, y, z) in 3D model
-                    # (u, v) in frame
-                    # Modify x,y,z
-                   # A = Matrix(x,y,z,u,v,A)
                     cnt = cnt + 1
                     ServoReady = 1
                 else :
+                    # raise error if nothing is detected by the camera
                   raise ValueError("No object detected!")
         # Stop sending command to servos
         # when ServoReady = 0                 
         if ServoReady == 1:
             if cnt == 0 :
                 #get the random points on the roof for calibration verification
-                random_index = random.randrange(round(rawM.size/5*0.95),round(rawM.size/5*0.96)) 
+                random_index = random.randrange(round(rawM.size/5*0.95),round(rawM.size/5)) 
                 pan,tilt = GetPanTilt(random_index,rawM)  
                 MotorControl(pan,tilt)      
                 ServoReady = 0
             elif cnt == 1 :
-                random_index = random.randrange(round(rawM.size/5*0.95),round(rawM.size/5*0.96))
+                random_index = random.randrange(round(rawM.size/5*0.95),round(rawM.size/5))
                 pan,tilt = GetPanTilt(random_index,rawM) 
                 MotorControl(pan,tilt) 
                 ServoReady = 0
             elif cnt == 2 :
-                random_index = random.randrange(round(rawM.size/5*0.95),round(rawM.size/5*0.96))
+                random_index = random.randrange(round(rawM.size/5*0.95),round(rawM.size/5))
                 pan,tilt = GetPanTilt(random_index,rawM) 
                 MotorControl(pan,tilt) 
                 ServoReady = 0
             elif cnt == 3 :
-                random_index = random.randrange(round(rawM.size/5*0.95),round(rawM.size/5*0.96))
+                random_index = random.randrange(round(rawM.size/5*0.95),round(rawM.size/5))
                 pan,tilt = GetPanTilt(random_index,rawM) 
                 MotorControl(pan,tilt) 
                 ServoReady = 0
             elif cnt == 4 :
-                random_index = random.randrange(round(rawM.size/5*0.95),round(rawM.size/5*0.96))
+                random_index = random.randrange(round(rawM.size/5*0.95),round(rawM.size/5))
                 pan,tilt = GetPanTilt(random_index,rawM) 
                 MotorControl(pan,tilt) 
                 ServoReady = 0
             elif cnt == 5 :
-                random_index = random.randrange(round(rawM.size/5*0.95),round(rawM.size/5*0.96))
+                random_index = random.randrange(round(rawM.size/5*0.95),round(rawM.size/5))
                 pan,tilt = GetPanTilt(random_index,rawM) 
                 MotorControl(pan,tilt) 
                 ServoReady = 0     
