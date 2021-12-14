@@ -80,9 +80,6 @@ if __name__ == '__main__':
     # initialize
     # change file path
       
-    
-  
-    
     diff = []
     A = []
     points_cloud = []
@@ -210,10 +207,6 @@ if __name__ == '__main__':
                  MotorControl(pan,tilt)      
                  ServoReady = 0
             else :               
-            # elif cnt == 7 :
-                # get the transformation matrix M
-                #by solving a Homogeneous Linear
-                #Equation System
                 GPIO.output(tll, GPIO.HIGH)
                 M = sol_svd(A)
                 print(M)
